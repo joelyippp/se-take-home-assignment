@@ -20,31 +20,28 @@ const queue = new Queue(orderService, botService)
 
 queue.startWatcher()
 
-orderService.createOrder({
-  item: 'Chicken McNuggets',
-  priority: "normal"
-})
-orderService.createOrder({
-  item: 'Big Mac',
-  priority: "VIP"
-})
-orderService.createOrder({
-  item: 'Ice Cream',
-  priority: "VIP"
-})
-orderService.createOrder({
-  item: 'Fries',
-  priority: "VIP"
-})
-
-setTimeout(() => {
-  orderService.createOrder({
-    item: 'Chocolate Sundae', 
+/* pre create mock orders */
+const orders = [
+  {
+    item: 'Chicken McNuggets',
     priority: "normal"
-  })
-}, 10000)
-
-
+  },
+  {
+    item: 'Big Mac',
+    priority: "VIP"
+  },
+  {
+    item: 'Ice Cream',
+    priority: "VIP"
+  },
+  {
+    item: 'Fries',
+    priority: "VIP"
+  }
+]
+// orders.forEach(order => {
+//   orderService.createOrder(order)
+// })
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'))

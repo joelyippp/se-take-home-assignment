@@ -6,6 +6,10 @@ export default class Queue {
     this.botService = botService
   }
 
+  /* 
+    Interval watcher to keep checking if there's a free bot and a pending order 
+    and assign the order to the free bot if exists.
+  */
   startWatcher () {
     if (!this._watcherInterval) {
       this._watcherInterval = setInterval(async () => {
@@ -13,10 +17,6 @@ export default class Queue {
         const idleBot = this.botService.getNextIdleBot()
         if (idleBot && pendingOrder) {
           this.botService.assignJob(idleBot, pendingOrder)
-        } else if (!idleBot) { 
-          console.log('All bots busy')
-        } else if (!pendingOrder) {
-          console.log('All orders processed')
         }
       }, 100)
     }

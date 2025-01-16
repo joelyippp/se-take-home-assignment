@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mcd panel</title>
+  <title>Panel</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -48,8 +48,9 @@
     .controls {
       margin-top: 20px;
       display: flex;
-      flex-direction: column;
+      justify-content: space-evenly;
     }
+
   </style>
 </head>
 <body>
@@ -71,28 +72,30 @@
   </div>
   <div class="controls">
     <div class="user-controls">
-      <input type="radio" id="css" name="priorityInput" value="normal" checked="checked">
-      <label for="css">Normal</label>
-      <input type="radio" id="html" name="priorityInput" value="VIP">
-      <label for="html">VIP</label>
-      <label for="itemInput">Item name: </label>
-      <input type="text" id="itemInput">
+      <div>
+        <input type="radio" id="css" name="priorityInput" value="normal" checked="checked">
+        <label for="css">Normal</label>
+        <input type="radio" id="html" name="priorityInput" value="VIP">
+        <label for="html">VIP</label>
+      </div>
+      <div>
+        <label for="itemInput">Item name: </label>
+        <input type="text" id="itemInput">
+      </div>
       <div class="controls">
         <button id="submitOrder">Submit order</button>
       </div>
     </div>
     <div class="admin-controls">
-      <button id="addBot">Add bot</button>
-      <button id="removeBot">Remove bot</button>
+      <button id="addBot">+ bot</button>
+      <button id="removeBot">- bot</button>
     </div>
-    <button id="clearIntervalBtn">clear</button>
   </div>
 
   <script>
     let addBotBtn = document.getElementById('addBot')
     let removeBotBtn = document.getElementById('removeBot')
     let submitOrderBtn = document.getElementById('submitOrder')
-    let clearIntervalBtn = document.getElementById('clearIntervalBtn')
 
     addBotBtn.addEventListener('click', async () => {
       try {
@@ -110,27 +113,23 @@
       }
     })
 
-    clearIntervalBtn.addEventListener('click', async () => {
-      clear()
-    })
-
     submitOrderBtn.addEventListener('click', async () => {
-      const item = document.getElementById('itemInput').value
-      // const priority = document.getElementById('priorityInput').value
-      const priority = document.querySelector('input[name="priorityInput"]:checked').value
-
-      try {
-        await fetch('http://localhost:3000/add-order', {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({item, priority})
-        })
-        console.log({item, priority})
-      } catch (error) {
-        console.error('Error fetching orders:', error)
+      const item = document.getElementById('itemInput').value.trim()
+      const priority = document.querySelector('input[name="priorityInput"]:checked').value.trim()
+      
+      if (item !== '' && priority !== ''){
+        try {
+          await fetch('http://localhost:3000/add-order', {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({item, priority})
+          })
+        } catch (error) {
+          console.error('Error adding orders:', error)
+        }
       }
     })
 
@@ -191,7 +190,7 @@
         console.error('Error fetching bots:', error)
       }
     }
-    const intervalFunc = setInterval(fetchThings, 1000)
+    const intervalFunc = setInterval(fetchThings, 500)
 
     function clear() {
       clearInterval(intervalFunc)
