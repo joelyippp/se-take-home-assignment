@@ -8,11 +8,11 @@ export default class Queue {
 
   startWatcher () {
     if (!this._watcherInterval) {
-      this._watcherInterval = setInterval(() => {
+      this._watcherInterval = setInterval(async () => {
         const pendingOrder = this.orderService.getNextPendingOrder()
         const idleBot = this.botService.getNextIdleBot()
         if (idleBot && pendingOrder) {
-          idleBot.processJob(pendingOrder)
+          this.botService.assignJob(idleBot, pendingOrder)
         } else if (!idleBot) { 
           console.log('All bots busy')
         } else if (!pendingOrder) {

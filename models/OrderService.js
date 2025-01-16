@@ -1,17 +1,15 @@
 import Order from './Order.js'
 
 export default class OrderService {
-  orderQueue = []
-
+  pendingOrderQueue = []
+  completedOrderQueue = []
+  
   constructor() {
     this._orderId = 1
+    // this.queue = queue
   }
 
-  get ordersQueue () {
-    return this.orderQueue
-  }
-
-  createOrder (item, priority) {
+  createOrder ({item, priority}) {
     const orderObj = {
       id: this.paddedOrderId(),
       item,
@@ -25,23 +23,45 @@ export default class OrderService {
 
   pushOrder(order) {
     if (order.priority === 'VIP') {
-      const vipOrders = this.orderQueue.filter(existingOrder => existingOrder.priority === 'VIP')
+      const vipOrders = this.pendingOrderQueue.filter(existingOrder => existingOrder.priority === 'VIP')
       if (!vipOrders.length) {
-        this.orderQueue.unshift(order)
+        this.pendingOrderQueue.unshift(order)
         return
       } else {
-        this.orderQueue.splice(vipOrders.length, 0, order)
+        this.pendingOrderQueue.splice(vipOrders.length, 0, order)
         return
       }
     }
-    this.orderQueue.push(order)
+    this.pendingOrderQueue.push(order)
+    // this.queue.startWatcher()
+  }
+
+  checkNextPendingOrder() {
+    if (this.pendingOrderQueue.length) return true
+    return false
   }
 
   getNextPendingOrder() {
-    return this.orderQueue.find(order => order.status === 'pending')
+    return this.pendingOrderQueue.find(order => order.status === 'pending')
   }
+
+  // getNextPendingOrder() {
+  //   if (this.pendingOrderQueue.length) {
+  //     return this.pendingOrderQueue.shift()
+  //   }
+  // }
 
   paddedOrderId() {
     return String(this._orderId). padStart(5, '0')
+  }
+
+  moveToSuccess(order) {
+    const ind = this.pendingOrderQueue.findIndex(el => el.id === order.id)
+    this.pendingOrderQueue.splice(ind, 1)
+    this.completedOrderQueue.push(order)
+  }
+
+  throwtoPending(order) {
+    this.pendingOrderQueue.push(order)
   }
 }

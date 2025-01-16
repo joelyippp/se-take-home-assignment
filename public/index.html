@@ -27,39 +27,150 @@
       padding: 5px;
       border-bottom: 1px solid #ddd;
     }
+    .display {
+      display: flex;
+      flex-direction: column;
+      min-height: 50vh;
+    }
+    .orders-wrapper {
+      display: flex;
+      justify-content: space-evenly;
+    }
+    #pendingOrderList, #completeOrderList {
+      width: 500px;
+      height: 200px;
+      overflow-y: auto
+    }
+    #botList {
+      height: 200px;
+      overflow-y: auto
+    }
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+    }
   </style>
 </head>
 <body>
-  <h1>Live Orders</h1>
-  <div id="orderList"></div>
-  <div id="botList"></div>
+  <div class="display">
+    <div class="orders-wrapper">
+        <div class="pending-wrapper">
+          <h2>Pending Orders</h2>
+          <div id="pendingOrderList"></div>
+        </div>
+        <div class="complete-wrapper">
+          <h2>Completed Orders</h2>
+          <div id="completeOrderList"></div>
+        </div>
+    </div>
+    <div class="bots-wrapper">
+      <h2>Bot list</h2>
+      <div id="botList"></div>
+    </div>
+  </div>
+  <div class="controls">
+    <div class="user-controls">
+      <input type="radio" id="css" name="priorityInput" value="normal" checked="checked">
+      <label for="css">Normal</label>
+      <input type="radio" id="html" name="priorityInput" value="VIP">
+      <label for="html">VIP</label>
+      <label for="itemInput">Item name: </label>
+      <input type="text" id="itemInput">
+      <div class="controls">
+        <button id="submitOrder">Submit order</button>
+      </div>
+    </div>
+    <div class="admin-controls">
+      <button id="addBot">Add bot</button>
+      <button id="removeBot">Remove bot</button>
+    </div>
+    <button id="clearIntervalBtn">clear</button>
+  </div>
 
   <script>
+    let addBotBtn = document.getElementById('addBot')
+    let removeBotBtn = document.getElementById('removeBot')
+    let submitOrderBtn = document.getElementById('submitOrder')
+    let clearIntervalBtn = document.getElementById('clearIntervalBtn')
+
+    addBotBtn.addEventListener('click', async () => {
+      try {
+        await fetch('http://localhost:3000/add-bot')
+      } catch (error) {
+        console.error('Error fetching orders:', error)
+      }
+    })
+    
+    removeBotBtn.addEventListener('click', async () => {
+      try {
+        await fetch('http://localhost:3000/remove-bot')
+      } catch (error) {
+        console.error('Failed to remove bot:', error)
+      }
+    })
+
+    clearIntervalBtn.addEventListener('click', async () => {
+      clear()
+    })
+
+    submitOrderBtn.addEventListener('click', async () => {
+      const item = document.getElementById('itemInput').value
+      // const priority = document.getElementById('priorityInput').value
+      const priority = document.querySelector('input[name="priorityInput"]:checked').value
+
+      try {
+        await fetch('http://localhost:3000/add-order', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({item, priority})
+        })
+        console.log({item, priority})
+      } catch (error) {
+        console.error('Error fetching orders:', error)
+      }
+    })
+
     async function fetchThings() {
-      fetchOrders()
-      fetchBots() 
+      fetchPendingOrders()
+      fetchBots()
     }
 
-    async function fetchOrders() {
+    async function fetchPendingOrders() {
       try {
-        const response = await fetch('http://localhost:3000/orders'); // Endpoint to fetch orders
+        const response = await fetch('http://localhost:3000/orders')
         if (!response.ok) {
           throw new Error('Failed to fetch orders')
         }
         const orders = await response.json()
+        const pendingOrderListDiv = document.getElementById('pendingOrderList')
+        pendingOrderListDiv.innerHTML = ''
 
-        const orderListDiv = document.getElementById('orderList')
-        orderListDiv.innerHTML = ''
-        orders.forEach(order => {
+        const completeOrderListDiv = document.getElementById('completeOrderList')
+        completeOrderListDiv.innerHTML = ''
+
+        orders.pendingOrderQueue.forEach(order => {
           const orderDiv = document.createElement('div')
           orderDiv.className = 'order'
           orderDiv.textContent = `Order ID: ${order.id}, Item: ${order.item}, Status: ${order.status}`
-          orderListDiv.appendChild(orderDiv)
+          pendingOrderListDiv.appendChild(orderDiv)
         })
+
+        orders.completedOrderQueue.forEach(order => {
+          const orderDiv = document.createElement('div')
+          orderDiv.className = 'order'
+          orderDiv.textContent = `Order ID: ${order.id}, Item: ${order.item}, Status: ${order.status}`
+          completeOrderListDiv.appendChild(orderDiv)
+        })
+
       } catch (error) {
         console.error('Error fetching orders:', error)
       }
     }
+
     async function fetchBots() {
       try {
         const response = await fetch('http://localhost:3000/bots')
@@ -80,8 +191,11 @@
         console.error('Error fetching bots:', error)
       }
     }
-    setInterval(fetchThings, 500)
-    fetchThings()
+    const intervalFunc = setInterval(fetchThings, 1000)
+
+    function clear() {
+      clearInterval(intervalFunc)
+    }
   </script>
 </body>
 </html>
